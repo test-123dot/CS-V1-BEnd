@@ -1,10 +1,23 @@
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
-const port = 3000;
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
+const uri = "mongodb+srv://ro436:qebebcICvSLuZmY1@clustertest.ww7wvpl.mongodb.net/?retryWrites=true&w=majority&appName=clusterTest";
+const port = 3000;
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
+
+app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
 app.use(function (req, res, next) {
     console.log("Request IP: " + req.url);
@@ -15,13 +28,7 @@ app.use(function (req, res, next) {
 let imagePath = path.resolve(__dirname, "images");
 app.use("/static", express.static(imagePath));
 
-app.use('/static', (req, res, next) => {
-    const error = new Error("File not found in /static");
-    error.status = 404; // Set the HTTP status code for the error
-    next(error); // Pass the error to the error-handling middleware
-});
-
-app.use(function (req, res) {
+app.use('/static', (req, res) => {
     res.status(404);
     res.send("File not found!");
 });
@@ -30,17 +37,6 @@ app.listen(port, function () {
     console.log("App started on port 3000");
 });
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://ro436:qebebcICvSLuZmY1@clustertest.ww7wvpl.mongodb.net/?retryWrites=true&w=majority&appName=clusterTest";
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
 
 let database;
 
@@ -62,11 +58,18 @@ async function run() {
         });
         app.post("/order", async (req, res) => {
             try {
+                res.setHeader('Content-Type', 'application/json');
+                const userOrders = req.body;
+                let result = await database.collection('Booking Orders').insertOne({
+                    firstName: userOrders.firstName, lastName: userOrders.lastName,
+                    phoneNum: userOrders.phoneNum, lessonId: [], availability: userOrders.availability
+                });
+                console.log(result);
             } catch (e) {
                 console.error(e);
             }
         });
-        app.put("/availability", (req, res) => {
+        app.put("/availability", async (req, res) => {
             try {
 
             } catch (e) {
