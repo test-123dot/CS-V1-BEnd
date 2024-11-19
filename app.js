@@ -27,33 +27,20 @@ app.use(function (req, res, next) {
     next();
 });
 
-// const staticFilesDirectory = path.join(__dirname, "static");
+const staticFilesDirectory = path.join(__dirname, "static");
 
-// // Serve static files (for testing image serving with /static)
-// app.use("/static", (req, res, next) => {
-//     const filePath = path.join(staticFilesDirectory, req.path);
-//     fs.access(filePath, fs.constants.F_OK, (err) => {
-//         if (err) {
-//             return res.status(404).send("File not found!");
-//         }
-//         return express.static(staticFilesDirectory)(req, res, next);
-//     });
-// });
-
-const htmlDirectory = path.join(__dirname, "../CS-V1");
-const imagesDirectory = path.join(__dirname, "../CS-V1/Images");
-
-app.get("/images/:imageName", (req, res) => {
-    const imagePath = path.join(imagesDirectory, req.params.imageName);
-
-    // Check if the image exists
-    fs.access(imagePath, fs.constants.F_OK, (err) => {
+// Serve static files (for testing image serving with /static)
+app.use("/static", (req, res, next) => {
+    const filePath = path.join(staticFilesDirectory, req.path);
+    fs.access(filePath, fs.constants.F_OK, (err) => {
         if (err) {
-            return res.status(404).send("File not found");
+            return res.status(404).send("File not found!");
         }
-        res.sendFile(imagePath);
+        return express.static(staticFilesDirectory)(req, res, next);
     });
 });
+
+app.use(express.static(path.join(__dirname, "../CS-V1")));
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(htmlDirectory, "index.html"));
