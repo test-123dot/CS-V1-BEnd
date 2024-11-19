@@ -3,7 +3,9 @@ const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
+const fs = require('fs');
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const uri = "mongodb+srv://ro436:qebebcICvSLuZmY1@clustertest.ww7wvpl.mongodb.net/?retryWrites=true&w=majority&appName=clusterTest";
 const port = 3000;
@@ -25,18 +27,37 @@ app.use(function (req, res, next) {
     next();
 });
 
-let imagePath = path.resolve(__dirname, "images");
-app.use("/static", express.static(imagePath));
+// const staticFilesDirectory = path.join(__dirname, "static");
 
-app.use('/static', (req, res) => {
-    res.status(404);
-    res.send("File not found!");
+// // Serve static files (for testing image serving with /static)
+// app.use("/static", (req, res, next) => {
+//     const filePath = path.join(staticFilesDirectory, req.path);
+//     fs.access(filePath, fs.constants.F_OK, (err) => {
+//         if (err) {
+//             return res.status(404).send("File not found!");
+//         }
+//         return express.static(staticFilesDirectory)(req, res, next);
+//     });
+// });
+
+const htmlDirectory = path.join(__dirname, "../CS-V1");
+const imagesDirectory = path.join(__dirname, "../CS-V1/Images");
+
+app.get("/images/:imageName", (req, res) => {
+    const imagePath = path.join(imagesDirectory, req.params.imageName);
+
+    // Check if the image exists
+    fs.access(imagePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            return res.status(404).send("File not found");
+        }
+        res.sendFile(imagePath);
+    });
 });
 
-app.listen(port, function () {
-    console.log("App started on port 3000");
+app.get("/", (req, res) => {
+    res.sendFile(path.join(htmlDirectory, "index.html"));
 });
-
 
 let database;
 
@@ -60,24 +81,41 @@ async function run() {
             try {
                 res.setHeader('Content-Type', 'application/json');
                 const userOrders = req.body;
+
                 let result = await database.collection('Booking Orders').insertOne({
-                    firstName: userOrders.firstName, lastName: userOrders.lastName,
-                    phoneNum: userOrders.phoneNum, lessonId: [], availability: userOrders.availability
+                    firstName: userOrders.firstName,
+                    lastName: userOrders.lastName,
+                    phoneNum: userOrders.phoneNum,
+                    lessonId: [],
+                    availability: userOrders.availability
                 });
                 console.log(result);
+                res.status(201).json({ message: "Order placed successfully", orderId: result.insertedId });
             } catch (e) {
                 console.error(e);
+                res.status(500).json({ error: "Error placing order" });
             }
         });
-        app.put("/availability", async (req, res) => {
+        app.put("/update", async (req, res) => {
             try {
+                const { id, availability } = req.body;
+                const objectId = new ObjectId(id);
 
+                const result = await database.collection('Lesson Catalog').updateOne(
+                    { _id: objectId },
+                    { $set: { availability: availability } }
+                );
+                res.json({ message: "Lesson updated successfully" });
             } catch (e) {
                 console.error(e);
+                res.status(500).json({ error: "Error updating lesson" });
             }
         });
     } finally {
-        //     await client.close();//
     }
 }
 run().catch(console.dir);
+
+app.listen(port, () => {
+    console.log(`App started on http://localhost:${port}`);
+});
