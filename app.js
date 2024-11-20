@@ -26,14 +26,16 @@ app.use(function (req, res, next) {
     next();
 });
 
+const staticFilesDirectory = path.join(__dirname, "static");
+
 // Serve static files (for testing image serving with /static)
 app.use("/static", (req, res, next) => {
-    const filePath = path.join(__dirname, "static", req.path);
+    const filePath = path.join(staticFilesDirectory, req.path);
     fs.access(filePath, fs.constants.F_OK, (err) => {
         if (err) {
             return res.status(404).send("File not found!");
         }
-        return express.static(path.join(__dirname, "static"))(req, res, next);
+        return express.static(staticFilesDirectory)(req, res, next);
     });
 });
 
