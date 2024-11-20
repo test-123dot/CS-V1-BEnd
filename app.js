@@ -73,8 +73,7 @@ async function run() {
                     firstName: userOrders.firstName,
                     lastName: userOrders.lastName,
                     phoneNum: userOrders.phoneNum,
-                    lessonId: [],
-                    availability: userOrders.availability
+                    lessonId: userOrders.lessonId
                 });
                 console.log(result);
                 res.status(201).json({ message: "Order placed successfully", orderId: result.insertedId });
@@ -83,13 +82,13 @@ async function run() {
                 res.status(500).json({ error: "Error placing order" });
             }
         });
-        app.put("/update", async (req, res) => {
+        app.put("/update/:id", async (req, res) => {
             try {
-                const { id, availability } = req.body;
+                const id = req.params.id;
+                const { availability } = req.body;
                 const objectId = new ObjectId(id);
 
                 const result = await database.collection('Lesson Catalog').updateOne(
-                    { _id: objectId },
                     { $set: { availability: availability } }
                 );
                 res.json({ message: "Lesson updated successfully" });
