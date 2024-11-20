@@ -4,8 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
 const fs = require('fs');
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const { ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const uri = "mongodb+srv://ro436:qebebcICvSLuZmY1@clustertest.ww7wvpl.mongodb.net/?retryWrites=true&w=majority&appName=clusterTest";
 const port = 3000;
@@ -89,6 +88,7 @@ async function run() {
                 const objectId = new ObjectId(id);
 
                 const result = await database.collection('Lesson Catalog').updateOne(
+                    { _id: objectId },
                     { $set: { availability: availability } }
                 );
                 res.json({ message: "Lesson updated successfully" });
