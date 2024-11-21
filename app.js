@@ -54,11 +54,6 @@ async function run() {
             try {
                 let lessonGet = await database.collection('Lesson Catalog').find().toArray();
                 console.log(lessonGet);
-
-                lessonGet.forEach(lesson => {
-                    console.log(`Lesson ID: ${lesson._id}, Title: ${lesson.title}, Image: ${lesson.image}`);
-                });
-
                 res.json(lessonGet);
             } catch (e) {
                 console.error(e);
