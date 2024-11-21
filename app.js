@@ -41,10 +41,6 @@ app.use("/static", (req, res, next) => {
 
 app.use(express.static(path.join(__dirname, "../CS-V1")));
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(htmlDirectory, "index.html"));
-});
-
 let database;
 
 async function run() {
@@ -58,6 +54,11 @@ async function run() {
             try {
                 let lessonGet = await database.collection('Lesson Catalog').find().toArray();
                 console.log(lessonGet);
+
+                lessonGet.forEach(lesson => {
+                    console.log(`Lesson ID: ${lesson._id}, Title: ${lesson.title}, Image: ${lesson.image}`);
+                });
+
                 res.json(lessonGet);
             } catch (e) {
                 console.error(e);
