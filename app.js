@@ -22,7 +22,8 @@ app.use(bodyParser.json());
 
 app.use(function (req, res, next) {
     console.log("Request IP: " + req.url);
-    console.log("Request date: " + new Date());
+    console.log("Request Method: " + req.method);
+    console.log("Request Date: " + new Date());
     next();
 });
 
@@ -57,6 +58,30 @@ async function run() {
                 res.json(lessonGet);
             } catch (e) {
                 console.error(e);
+            }
+        });
+        app.get("/search", async (req, res) => {
+            try {
+                const searchTerm = req.query.q; // Get the search term from the query parameters
+                let searchCriteria = {
+                    $or: [
+                        { title: { $regex: searchTerm, $options: 'i' } }, // Search in title
+                        { location: { $regex: searchTerm, $options: 'i' } }, // Search in location
+                        { price: { $regex: searchTerm, $options: 'i' } } // Search in price
+                    ]
+                };
+
+                // Check if the search term can be parsed as a number for availability
+                const availability = parseInt(searchTerm, 10);
+                if (!isNaN(availability)) {
+                    searchCriteria.$or.push({ availability: availability }); // Search in availability
+                }
+
+                const lessons = await database.collection('Lesson Catalog').find(searchCriteria).toArray();
+                res.json(lessons);
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ error: "Error fetching lessons" });
             }
         });
         app.post("/order", async (req, res) => {
